@@ -86,9 +86,16 @@ async def command_start_handler(message: Message, state: FSMContext, command: Co
         survey = await get("tests/current/summary", {'token': token})
         current_input = 0
         await state.update_data(survey=survey, token=token, current_input=current_input, user_inputs=[])
+        description = ''
+        if survey["description"]:
+            description = f'Описание: {survey["description"]}'
+        else:
+            description = 'Описание отсутствует'
+
         await message.answer(
             f"Добро пожаловать на тест: {survey['title']}\n"
-            f"Количество вопросов в тесте: {survey['question_count']}"
+            f"Количество вопросов в тесте: {survey['question_count']}\n"
+            f"{description}"
         )
         if survey["user_inputs"]:
             await message.answer("Перед началом заполним необходимые поля:")
@@ -182,7 +189,7 @@ async def question_call(call: CallbackQuery, state: FSMContext):
 
     if data['question']['isLast']:
         await post(f"sessions/{data['session_id']}/complete")
-        await call.message.edit_text('Опрос пройден')
+        await call.message.edit_text('Тест пройден, спасибо за ответы. Результаты можно узнать у создателя теста.')
     else:
         question = await get(
             f"sessions/{data['session_id']}/next",
